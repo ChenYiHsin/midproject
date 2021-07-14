@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>結算</title>
+</head>
+<body style="background-color: #d7f5ff">
+
+    <div class="container mt-5">
+        <div>
+            <div class="row">
+                <div class="col-3"></div>
+                <div class="col-6" style="padding-bottom:100px;text-align: center;background-color: rgba(255,255,255,0.6);">
+                    <div class="form-group  mt-5" style="text-align: center">
+                        <h2 style="letter-spacing: 30px;">购物车结算</h2>
+                        <link rel="stylesheet" href="./../bootstrap/css/bootstrap.css">
+                    </div>
+                    <form>
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="uname">用户名称</label>
+                                <span class="form-control" id="uname"></span>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="sex">用户性别</label>
+                                <span class="form-control" id="sex"></span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>购物车商品</label>
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <td scope="col">商品名称</td>
+                                        <td scope="col">商品数量</td>
+                                        <td scope="col">商品单价</td>
+                                    </tr>
+                                </thead>
+                                <tbody id="show1">
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="form-group">
+                            <label>总金额</label>
+                            <span class="form-control" id="total"></span>
+                        </div>
+                    </form>
+                </div>
+                <div class="col-3"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="./../common/jquery-3.3.1.js"></script>
+    <script>$(function(){
+       getTotal();
+   })
+
+   const getTotal=function(){
+       let uid=localStorage.getItem("uid");
+       let cid=localStorage.getItem("cid");
+       $("#show2").html("")
+       $.ajax({
+           type : 'get',
+           url : '/getTotal',
+           data:{"uid":uid,"cid":cid},
+           success:function(data){
+
+               $("#show1").html("");
+
+               if(data.status==200){
+                   console.log(data);
+                   let arr=data.data[1];
+                   $("#uname").text(data.data[0][0].uname);
+                   $("#sex").text(data.data[0][0].sex);
+                   let count=0;
+                   for(let i in arr){
+                       let obj=arr[i];
+
+                       $("#show1").append(`
+                                <tr>
+                                      <td scope="col">${obj.goodName}</td>
+                                       <td scope="col">${obj.goodqutity}</td>
+                                       <td scope="col">${obj.price}￥</td>
+                                 </tr>`);
+                       count+=obj.goodqutity*obj.price;
+
+                   }
+                   $("#total").text(count);
+               }
+               else if(data.status=400){
+                   alert("数据库连接有问题！");
+
+               }
+           }
+       })
+   }</script>
+</body>
+</html>

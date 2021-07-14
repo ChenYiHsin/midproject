@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>首頁</title>
+    <link rel="stylesheet" href="./../bootstrap/css/bootstrap.css">
+</head>
+<body style="background-color: #d7f5ff">
+    <div class="form-group  mt-5" style="text-align: center">
+        <h2 style="letter-spacing: 30px;">商品信息</h2>
+        <button type="button" id="btn3" class="btn btn-danger">全部加入购物车</button>
+        <button type="button" id="btn4" class="btn btn-primary">批量加入购物车</button>
+        <button type="button" id="btn5" class="btn btn-info">反選加入购物车</button>
+    </div>
+    <div>
+        <div class="row" style="text-align:center;background-color: rgba(255,255,255,0.8)" ;>
+            <table class="table border">
+                <thead class="thead-dark">
+                    <tr>
+                        <th scope="col">選擇</th>
+                        <th scope="col">商品名稱</th>
+                        <th scope="col">商品數量</th>
+                        <th scope="col">數量</th>
+                        <th scope="col">單價</th>
+                        <th scope="col">操作</th>
+                    </tr>
+                <tbody id="show">
+                    <tr>
+                        <td><input type="radio"></td>
+                        <td scope="col">旺仔小馒头</td>
+                        <td scope="col">100</td>
+                        <td scope="col">
+                            <div class="plussub">
+                                <span class="sub" onclick="sub(1)">&ndash;</span>
+                                <input class="yzquantity1" onblur="yzquantity(1)" type="text" value="1">
+                                <span class="plus" onclick="plus(1)">&#43;</span>
+                            </div>
+                        </td>
+                        <td scope="col">2.5￥</td>
+                        <td scope="col">
+                            <button type="button" class="btn btn-success">加入购物车</button>
+                            <button type="button" class="btn btn-danger">删除</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="container mt-2 mb-2 mr-2">
+                <button type="button" class="btn btn-primary  float-right" id="btn1">我的购物车</button>
+            </div>
+        </div>
+    </div>
+    <script src="./../common/jquery-3.3.1.js"></script>
+    <script src="./../bootstrap/js/bootstrap.bundle.js"></script>
+    <script>
+        var count = 0;
+        let cid = randomNumber();
+        localStorage.setItem("cid", cid);
+        let arr1 = [];//存入批量选择的goodId
+        $(function () {
+            setuid();
+            getList();
+            createC();
+            $(document).on("click", ".btn6", confirmBtn);
+            $(document).on("click", ".btn-add", addBtn);
+            $(document).on("click", ".btn-search", searchBtn);
+        })
+
+        const setuid = function () {
+            let username = localStorage.getItem("username");
+            $.ajax({
+                type: "get",
+                url: "/setuid",
+                data: { "username": username },
+                success: function (data) {
+                    if (data.status == 200) {
+                        localStorage.setItem("uid", data.data[0].uid)
+                    } else if (data.status == 400) {
+                        console.log("setuid error")
+                    }
+                }
+            })
+                .done(function () {
+
+                })
+        }
+
+        const createC = function () {
+            let uId = localStorage.getItem("uid");
+            $.ajax({
+                type: "get",
+                url: "/createC",
+                data: { "uId": uId, "cId": cid },
+                success: function (data) {
+
+                    if (data.status == 400) {
+                        console.log("createC error")
+                    }
+                }
+            })
+        }
+
+        const getList = function () {
+            $.ajax({
+                type: 'get',
+                url: '/getList',
+                success: function (data) {
+                    if (data.status == 200) {
+                        let arr = data.data;
+                        if (arr.length == 0) {
+                            alert("数据库没有数据！");
+                        } else {
+                            $("#show").html("");
+                            for (let i in arr) {
+                                let obj = arr[i];
+                                count = obj.goodNum;
+                                $("#show").append(`
+                                     <tr>
+                                           <td><input type="radio" data-id="${obj.goodId}"></td>
+                                           <td scope="col">${obj.goodName}</td>
+                                           <td scope="col">${obj.goodNum}</td>
+                                           <td scope="col">
+                                               <input data-id="${obj.goodId}"  onKeypress="return (/[\\d]/.test(String.fromCharCode(event.keyCode)))" placeholder="0" type="number" min="0"/>
+                                               <button type="button"  class="btn btn-primary btn6" >确定</button>
+                                            </td>
+                                            <td scope="col">${obj.price}￥</td>
+                                            <td scope="col">
+                                                <button type="button" class="btn btn-success btn-add"  data-id="${obj.goodId}">加入购物车</button>
+                                                <button type="button" class="btn btn-danger btn-search" data-id="${obj.goodId}"">查看</button>
+                                            </td>
+                                      </tr>`)
+                            } addEventListener
+
+                        }
+                    } else if (data.status = 400) {
+                        alert("商品数据库连接有问题！");
+                    }
+                }
+            })
+        }
+
+        const addBtn = (e) => {
+            let id = $(e.target).attr("data-id");
+
+            $.ajax({
+                type: "get",
+                url: "/saveCartInfo",
+                data: { "goodId": id, "cartId": cid, "count": count },
+                success: function (data) {
+                    if (data.status == 200) {
+                        console.log(data)
+                        alert("成功添加至购物车！");
+                    } else if (data.status == 400) {
+                        alert("货物信息连接失败！");
+                    }
+                }
+            })
+        }
+
+        const searchBtn = (e) => {
+            $("#showGoodInfo").modal("show");
+            let id = $(e.target).attr("data-id");
+            $.ajax({
+                type: "get",
+                url: "/getGoodDetailInfo",
+                data: { "goodId": id },
+                success: function (data) {
+                    let arr = data.data;
+                    console.log(arr);
+                    $("#gN").text(arr[0].goodName);
+                    $("#gNum").text(arr[0].goodNum);
+                    $("#gP").text(arr[0].price + "￥");
+                }
+            })
+
+        }
+
+        $("#btn1")[0].addEventListener("click", function () {
+            location.href = './cart.html';
+        }, true)
+
+        //全部加入购物车
+        $("#btn3")[0].addEventListener("click", function () {
+            let gooddata = [];
+            let co = 0;
+            $.ajax({
+                type: "get",
+                url: "/selectAll",
+                success: function (data) {
+                    gooddata.push(data.data[1]);
+                }
+            })
+                .done(function () {
+                    $.ajax({
+                        type: "get",
+                        url: "/addAll",
+                        data: { "gooddata": gooddata[0], "length": gooddata[0].length, "cid": cid },
+                        success: function (data) {
+                            if (data.status == 200) {
+                                selectAll();
+                                alert("已成功全部添加！");
+
+                            }
+                        }
+                    })
+                })
+        }, true)
+
+        $("#btn4")[0].addEventListener("click", function () {
+            $("input[type|=radio]:checked").each(function (e) {
+                let id = $(this).attr("data-id");
+                arr1.push(id);
+            })
+            console.log(arr1.length);
+            $.ajax({
+                type: "get",
+                url: "/selectSome",
+                data: { "arr1": arr1, "length": arr1.length, "cid": cid },
+                success: function (data) {
+                    if (data.status == 200) {
+                        $('input[type|=radio]').prop('checked', false);
+                        alert("已成功批量添加！");
+                    }
+                }
+            })
+        }, true)
+
+        $("#btn5")[0].addEventListener("click", function () {
+            $("input[name='radio']").each(function () {
+                if ($(this).attr("checked")) {
+                    let id = $(this).attr("data-id");
+                    arr1.push(id);
+                    $(this).removeAttr("checked");
+                }
+                else {
+                    $(this).attr("checked", "true");
+                }
+            })
+            cancelAll();
+        }, true)
+
+        function confirmBtn() {
+            count = 0;
+            count = $($(this)[0]).prev().val();
+        }
+
+        function randomNumber() {
+            const now = new Date()
+            let seconds = now.getSeconds()
+            return now.getFullYear().toString() / 10 + seconds + (Math.round(Math.random() * 10 + 23)).toString()
+        }
+
+        function selectAll() {
+            $('input[type|=radio]').attr('checked', 'checked');
+        }
+
+        function cancelAll() {
+            $('input[type|=radio]').removeAttr('checked');
+        }
+
+    </script>
+
+    
+</body>
+</html>

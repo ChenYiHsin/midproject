@@ -1,0 +1,110 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>登錄</title>
+    <link href="bootstrap/css/bootstrap.css" rel="stylesheet" />
+    <style>
+        .block{
+            display: block;
+        }
+        .noblock{
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <div class="alert alert-danger" role="alert" id="=" alert1>
+            <button type="button" class="close" data-dismiss="alert" aria-hidden="true"></button>
+            登錄失敗
+        </div>
+        <div class="alert alert-success" role="alert" id=" alert2">
+            <button type="button" class="close" data-dismiss="alert" aria-hidden="true"></button>
+            登錄成功
+        </div>
+        <div calss="row mt-5">
+            <div class="col-3"></div>
+            <div class="col-6">
+                <form>
+                    <div class="form-group" style="text-align: center">
+                        <h2 style="letter-spacing: 30px;">登录</h2>
+                    </div>
+                    <div class="form-group">
+                        <label for="username">用戶名稱</label>
+                        <input type="text" class="form-control" id="username" placeholder="請输入帳號">
+                        <small id="nousername" class="form-text text-muted float-right">
+                            <span style="color: #bd2130;">您输入的用户名不符合規定！</span>
+                        </small>
+                    </div>
+                    <div class="form-group">
+                        <label for="pwd">密碼</label>
+                        <input type="text" class="form-control" id="pwd" placeholder="請输入密碼">
+                        <small id="nouserpwd" class="form-text text-muted float-right">
+                            <span style="color: #bd2130;">您输入的密碼不符合規定！</span>
+                        </small>
+                    </div>
+
+                </form>
+            </div>
+
+        </div>
+    </div>
+    <script src=" common/jquery-3.3.1.js"></script>
+    <script src="bootstrap/js/bootstrap.bundle.js"></script>
+    <script>
+        $(function () {
+            $("#alert1").hide();
+            $("#alert2").hide()
+            $("#nousername").hide();
+            $("#nopwd").hide();
+        })
+
+        function login() {
+            let username, pwd;
+            username = $("#username").val();
+            pwd = $("#pwd").val();
+
+            if (/^\w{3,10}$/.test(username)) {
+            } else {
+                $("nousername").css("display", "block");
+                $("#nousername").show();
+
+            }
+
+            if (/^\w{3,10}$/.test(pwd)) {
+            } else {
+                $("#nopwd").show();
+                $("#block").css("margin-top", "25px");
+                return;
+            }
+            //原生JS
+            let xhr = window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject("Microsfot.XMLHTTP");
+            let data = "";
+            xhr.onreadystatechange = function () {
+                //console.log(xhr.readyState); //1 初始化 2 发起请求 3 进行中，等待响应 4 完成请求
+
+                if (xhr.readyState == 4) {
+                    data = JSON.parse(xhr.responseText);
+                    if (data.status == 200) {
+                        $("#alert2").show();
+                        localStorage.setItem("username", username);
+                        location.href = "html/main.html";
+                    } else if (data.status == 400) {
+                        $('#alert1').show()
+                    }
+                }
+
+            }
+            xhr.open("post", '/login', true);
+            xhr.setRequestHeader("content-type", "application/x-www-form-urlencoded");
+            xhr.send(`username=${username}&pwd=${pwd}`);
+        }
+
+        $("#btn1")[0].addEventListener("click", login, true);
+    </script>
+ 
+</body>
+</html>

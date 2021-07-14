@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>購物車</title>
+    <link rel="stylesheet" href="./../bootstrap/css/bootstrap.css">
+</head>
+<body style="background-color: #d7f5ff">
+    <div class="container mt-3">
+        <div class="form-group  mt-5" style="text-align: center">
+            <h2 style="letter-spacing: 30px;" class="mb-4">我的购物车</h2>
+            <button type="button" id="btn2" class="btn btn-success">清空购物者</button>
+        </div>
+
+
+        <div class="row" style="text-align: center;background-color: rgba(255,255,255,0.8);">
+            <table class="table border" style="text-align: center;">
+                <thead class="thead-dark">
+                    <tr>
+                        <th scope="col">选择</th>
+                        <th scope="col">商品名称</th>
+                        <th scope="col">商品数量</th>
+                        <th scope="col">商品单价</th>
+                        <th scope="col">购买数量</th>
+                        <th scope="col">操作</th>
+                    </tr>
+                </thead>
+                <tbody id="show2">
+                    <tr>
+                        <td><input type="radio"></td>
+                        <td scope="col">旺仔小馒头</td>
+                        <td scope="col">100</td>
+                        <td scope="col">
+                            <div class="plussub">
+                                <span class="sub" onclick="sub(1)">&ndash;</span>
+                                <input class="yzquantity1" onblur="yzquantity(1)" type="text" value="1">
+                                <span class="plus" onclick="plus(1)">&#43;</span>
+                            </div>
+                        </td>
+                        <td scope="col">2.5￥</td>
+                        <td scope="col">
+                            <button type="button" class="btn btn-success">加入购物车</button>
+
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="container">
+                <div class="float-right mt-2 mb-3 mr-3">
+                    <button type="button" class="btn btn-primary" id="rediect">提交购物车信息，计算总金额</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="./../common/jquery-3.3.1.js"></script>
+    <script src="./../bootstrap/js/bootstrap.bundle.js"></script>
+    <script>$(function(){
+       getCartList();
+       $(document).on("click",".btn-delete",deleteBtn);
+   })
+   const getCartList=function(){
+       let uid=localStorage.getItem("uid");
+       let cid=localStorage.getItem("cid");
+       console.log(uid);
+       $("#show2").html("")
+       $.ajax({
+           type : 'get',
+           url : '/getCartList',
+           data:{"uid":uid,"cid":cid},
+           success:function(data){
+
+               if(data.status==200){
+                   let arr=data.data;
+                   for(let i in arr){
+                       let obj=arr[i]
+                       $("#show2").append(`
+                                <tr><td><input type="radio"></td>
+                                      <td scope="col">${obj.goodName}</td>
+                                      <td scope="col">${obj.goodNum}</td>
+                                       <td scope="col">${obj.price}￥</td>
+                                       <td scope="col">${obj.goodqutity}</td>
+                                       <td scope="col">
+                                           <button type="button" class="btn btn-danger btn-delete" data-id="${obj.goodId}"">删除</button>
+                                       </td>
+                                 </tr>`)
+                   }if(arr.length==0){
+                       alert("数据库没有数据！");
+                   }
+               }
+               else if(data.status=400){
+                   alert("数据库连接有问题！");
+
+               }
+           }
+       })
+   }
+   //删除单个商品
+   function deleteBtn(e){
+       let id=$(e.target).attr("data-id");
+       $.ajax({
+           type:"get",
+           url:"/deleteCart",
+           data:{"goodId":id},
+           success:function(data){
+               if(data.status==200){
+                   alert("删除成功！");
+               }else if(data.status==400){
+                   alert("删除失败！");
+               }
+           }
+       })
+           .done(function(){
+               getCartList();
+           })
+   }
+
+   //删除所有商品
+   $("#btn2")[0].addEventListener("click",function(){
+       $.ajax({
+           type:"get",
+           url:"/deleteAllCart",
+           success:function(data){
+               if(data.status==200){
+                   alert("删除成功！");
+               }else if(data.status==400){
+                   alert("删除失败！");
+               }
+           }
+       })
+           .done(function(){
+               getCartList();
+           })
+   },true)
+
+
+   //跳转   location.href="html/total.html";
+   $("#rediect")[0].addEventListener("click",function(){
+       location.href="./total.html";
+   },true)</script>
+</body>
+
+</html>
